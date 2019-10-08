@@ -12,3 +12,4 @@
 *.out
 /go.sum
 .idea/
+/go-easy
