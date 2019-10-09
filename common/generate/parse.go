@@ -21,7 +21,7 @@ func (model *{{.struct}}) Save() (interface{}, error) {
 	{{ if .create_at }}
 	model.{{.create_at}} = time.Now().UTC()
 	{{ end }}
-	result, err := {{.client}}.InsertOne(defaultContext, model)
+	result, err := {{.client}}.InsertOne({{.struct}}Context, model)
 	if nil != err {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (model *{{.struct}}) Save() (interface{}, error) {
 }
 
 func (model *{{.struct}}) Delete(filter interface{}) (int64, error) {
-	result, err := {{.client}}.DeleteMany(defaultContext, filter)
+	result, err := {{.client}}.DeleteMany({{.struct}}Context, filter)
 	if nil != err {
 		return 0, err
 	}
@@ -40,7 +40,7 @@ func (model *{{.struct}}) DeleteByID() (int64, error) {
 	filter := bson.M{
 		"_id": model.{{.id}},
 	}
-	result, err := {{.client}}.DeleteOne(defaultContext, filter)
+	result, err := {{.client}}.DeleteOne({{.struct}}Context, filter)
 	if nil != err {
 		return 0, err
 	}
@@ -55,7 +55,7 @@ func (model *{{.struct}}) FindByID() (err error) {
 		{{ end }}
 	}
 
-	result := {{.client}}.FindOne(defaultContext, filter)
+	result := {{.client}}.FindOne({{.struct}}Context, filter)
 	err = result.Decode(model)
 
 	return
@@ -66,7 +66,7 @@ func (model *{{.struct}}) Find(filter interface{}) (err error) {
 	mQuery := filter.(map[string]interface{})
 	mQuery["{{.soft_delete_bson_name}}"] = false
 	{{ end }}
-	result := {{.client}}.FindOne(defaultContext, filter)
+	result := {{.client}}.FindOne({{.struct}}Context, filter)
 	err = result.Decode(model)
 	return
 }
@@ -77,8 +77,8 @@ func (model *{{.struct}}) FindAll(filter interface{}) (modelList []{{.struct}}, 
 	mQuery["{{.soft_delete_bson_name}}"] = false
 	{{ end }}
 	var cursor *mongo.Cursor
-	cursor, err = {{.client}}.Find(defaultContext, filter)
-	for nil != cursor && cursor.Next(defaultContext) {
+	cursor, err = {{.client}}.Find({{.struct}}Context, filter)
+	for nil != cursor && cursor.Next({{.struct}}Context) {
 		temp := {{.struct}}{}
 		err = cursor.Decode(&temp)
 		if nil != err {
@@ -94,7 +94,7 @@ func (model *{{.struct}}) FindPage(filter interface{}, iPageSize, iPageIndex int
 	mQuery := filter.(map[string]interface{})
 	mQuery["{{.soft_delete_bson_name}}"] = false
 	{{ end }}
-	count, err = {{.client}}.CountDocuments(defaultContext, filter)
+	count, err = {{.client}}.CountDocuments({{.struct}}Context, filter)
 	if nil != err {
 		return
 	}
@@ -105,8 +105,8 @@ func (model *{{.struct}}) FindPage(filter interface{}, iPageSize, iPageIndex int
 		opt = opt.SetSort(sortStr)
 	}
 	var cursor *mongo.Cursor
-	cursor, err = {{.client}}.Find(defaultContext, filter, opt)
-	for nil != cursor && cursor.Next(defaultContext) {
+	cursor, err = {{.client}}.Find({{.struct}}Context, filter, opt)
+	for nil != cursor && cursor.Next({{.struct}}Context) {
 		temp := {{.struct}}{}
 		err = cursor.Decode(&temp)
 		if nil != err {
@@ -128,7 +128,7 @@ func (model *{{.struct}}) UpdateByID() (err error) {
 	{{ if .update_at }}
 	model.{{.update_at}} = time.Now().UTC()
 	{{ end }}
-	_, err = {{.client}}.UpdateOne(defaultContext, filter, model)
+	_, err = {{.client}}.UpdateOne({{.struct}}Context, filter, model)
 	return
 }
 
@@ -140,7 +140,7 @@ func (model *{{.struct}}) Update(filter interface{}) (err error) {
 	{{ if .update_at }}
 	model.{{.update_at}} = time.Now().UTC()
 	{{ end }}
-	_, err = {{.client}}.UpdateMany(defaultContext, filter, model)
+	_, err = {{.client}}.UpdateMany({{.struct}}Context, filter, model)
 	return
 }
 
@@ -153,7 +153,7 @@ func (model *{{.struct}}) SoftDeleteByID() (err error) {
 		"{{.soft_delete_bson_name}}": false,
 	}
 
-	_, err = {{.client}}.CountDocuments(defaultContext, filter)
+	_, err = {{.client}}.CountDocuments({{.struct}}Context, filter)
 	if nil != err {
 		return
 	}
@@ -187,7 +187,7 @@ func (model *{{$.struct}}) FindBy{{$unique_index_name}}({{ $unique_index_info.Pa
 		{{ end }}
 	}
 
-	result := {{$.client}}.FindOne(defaultContext, filter)
+	result := {{$.client}}.FindOne({{$.struct}}Context, filter)
 	err = result.Decode(model)
 
 	return
