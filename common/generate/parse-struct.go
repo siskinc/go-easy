@@ -66,7 +66,7 @@ func ParseStruct(filename string, src []byte) (structFieldListMap map[string][]*
 	if src == nil {
 		src, err = ioutil.ReadFile(filename)
 		if err != nil {
-			return
+			panic(err)
 		}
 	}
 	file, err := parser.ParseFile(token.NewFileSet(), filename, src, parser.ParseComments)
