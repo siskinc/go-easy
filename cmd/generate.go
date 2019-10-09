@@ -40,6 +40,7 @@ import (
 var (
 	clientName   string
 	typeNameList []string
+	fileContent  string
 )
 
 // generateCmd represents the generate command
@@ -62,13 +63,40 @@ var generateMongoDBCmd = &cobra.Command{
 		if nil != err {
 			logrus.Fatalln(" ParseStruct is err:", err)
 		}
+		contentByte, err := ioutil.ReadFile(gofile)
+		if nil != err {
+			logrus.Fatalf("Read File %s is err", gofile)
+		}
+		fileContent = string(contentByte)
 		for _, typeName := range typeNameList {
 			generateMongoDB(gopkg, typeName, structFieldListMap, structDocumentListMap)
 		}
 	},
 }
 
+type UniqueIndexInfo struct {
+	Parameters               string
+	FieldNameList            []string
+	FieldBsonNameList        []string
+	FieldVariableNameList    []string
+	FieldTypeAndVariableName map[string][]string
+}
+
+func (u *UniqueIndexInfo) GenParameters() {
+	for typeName, variableNameList := range u.FieldTypeAndVariableName {
+		for _, variableName := range variableNameList {
+			if "" == u.Parameters {
+				u.Parameters = variableName
+			} else {
+				u.Parameters = fmt.Sprintf("%s, %s", u.Parameters, variableName)
+			}
+		}
+		u.Parameters = fmt.Sprintf("%s %s", u.Parameters, typeName)
+	}
+}
+
 func generateMongoDB(goPackage, typeName string, structFieldListMap map[string][]*ast.Field, structDocumentListMap map[string][]string) {
+	uniqueIndexMap := make(map[string]UniqueIndexInfo)
 	var documentList []string
 	var fieldList []*ast.Field
 	var ok bool
@@ -113,25 +141,14 @@ func generateMongoDB(goPackage, typeName string, structFieldListMap map[string][
 				command := commandList[1]
 				switch command {
 				case generate.SoftDelete, generate.SoftDeleteAt, generate.UpdateAt, generate.CreateAt:
-					softDeleteField, ok := fieldMap[fieldNameFromCommand]
+					field, ok := fieldMap[fieldNameFromCommand]
 					if !ok {
 						logrus.Fatalf(" not found soft delete field %s", fieldNameFromCommand)
 					}
-					tagValue := ""
-					if nil != softDeleteField.Tag {
-						tagValue = strings.Trim(softDeleteField.Tag.Value, "`")
-					}
-					tags, err := structtag.Parse(tagValue)
+					bsonName, err := generate.GetBsonName(fieldNameFromCommand, field)
 					if nil != err {
 						logrus.Fatalf(" Parse tag is err: %s, structName: %s, filedName: %s, command: %s", err,
 							typeName, fieldNameFromCommand, command)
-					}
-					bsonTag, _ := tags.Get("bson")
-					bsonName := ""
-					if nil != bsonTag {
-						bsonName = bsonTag.Name
-					} else {
-						bsonName = str.ToSnakeCase(fieldNameFromCommand)
 					}
 					if 3 <= len(commandList) {
 						if fieldName, ok := parseInfo[command]; !ok {
@@ -146,10 +163,52 @@ func generateMongoDB(goPackage, typeName string, structFieldListMap map[string][
 						parseInfo[command+"_bson_name"] = bsonName
 					}
 				case generate.UniqueIndex:
+					uniqueFieldList := commandList[2:]
 
+					uniqueInfo := UniqueIndexInfo{
+						FieldNameList:            make([]string, len(uniqueFieldList)),
+						FieldBsonNameList:        make([]string, len(uniqueFieldList)),
+						FieldVariableNameList:    make([]string, len(uniqueFieldList)),
+						FieldTypeAndVariableName: make(map[string][]string),
+					}
+					uniqueIndexName := ""
+
+					// check unique field is exist
+					// get bson value of unique field
+					for index, uniqueField := range uniqueFieldList {
+						if field, ok := fieldMap[uniqueField]; !ok {
+							logrus.Fatalf("generate unique field is failed, because the"+
+								"field %s not found", uniqueField)
+						} else {
+							bsonName, err := generate.GetBsonName(uniqueField, field)
+							if nil != err {
+								logrus.Fatalf("can't find %s filed's bson value", uniqueField)
+							}
+							uniqueInfo.FieldNameList[index] = uniqueField
+							uniqueInfo.FieldBsonNameList[index] = bsonName
+							variableName := str.LatinCharFirst(uniqueField)
+							variableType := generate.GetFieldType(fileContent, field)
+							uniqueInfo.FieldTypeAndVariableName[variableType] =
+								append(uniqueInfo.FieldTypeAndVariableName[variableType], variableName)
+							uniqueInfo.FieldVariableNameList[index] = variableName
+						}
+
+						if index == 0 {
+							uniqueIndexName = uniqueField
+						} else {
+							uniqueIndexName = fmt.Sprintf("%sAnd%s", uniqueIndexName, uniqueField)
+						}
+					}
+					uniqueInfo.GenParameters()
+					uniqueIndexMap[uniqueIndexName] = uniqueInfo
 				}
 			}
 		}
+	}
+
+	if 0 < len(uniqueIndexMap) {
+		parseInfo["unique_index_map"] = uniqueIndexMap
+		parseStr += generate.UniqueIndexParse
 	}
 
 	tmpl, err := template.New("").Parse(parseStr)
