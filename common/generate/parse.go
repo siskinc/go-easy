@@ -15,7 +15,7 @@ import (
 )
 
 var _ = time.Now()
-var defaultContext = context.Background()
+var {{.struct}}Context = context.Background()
 
 func (model *{{.struct}}) Save() (interface{}, error) {
 	{{ if .create_at }}
