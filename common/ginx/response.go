@@ -1,6 +1,7 @@
 package ginx
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -14,13 +15,24 @@ type ErrorResponse struct {
 	Message   string `json:"message"`
 }
 
+type ErrorCode interface {
+	error
+	fmt.Stringer
+	ErrorCode() uint64
+}
+
 func MakeResponse(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, Response{Result: data})
 }
 
-func MakeErrorResponse(c *gin.Context, errorCode uint64, message string) {
-	c.JSON(HttpStatusCustomInternalServerError, ErrorResponse{
-		ErrorCode: errorCode,
-		Message:   message,
-	})
+func MakeErrorResponse(c *gin.Context, err error) {
+	resp := ErrorResponse{
+		Message: err.Error(),
+	}
+	if errorCode, ok := err.(ErrorCode); ok {
+		resp.ErrorCode = errorCode.ErrorCode()
+		c.JSON(HttpStatusCustomInternalServerError, resp)
+	} else {
+		c.JSON(http.StatusBadRequest, resp)
+	}
 }

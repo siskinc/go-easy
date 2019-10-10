@@ -25,4 +25,8 @@ func (e {{ .error_type }}) String() string {
 	return "UNKNOWN"
 }
 
+func (e {{ .error_type }}) ErrorCode() uint64 {
+	return uint64(e)
+}
+
 `
