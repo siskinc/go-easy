@@ -15,4 +15,14 @@ func (e {{ .error_type }}) Error() string {
 	return "UNKNOWN"
 }
 
+func (e {{ .error_type }}) String() string {
+	switch e {
+	{{ range $name, $doc := .error_info }}
+	case {{ $name }}:
+		return "{{ $name }}"
+	{{ end }}
+	}
+	return "UNKNOWN"
+}
+
 `

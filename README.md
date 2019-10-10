@@ -76,5 +76,21 @@ func (e EnumTest) Error() string {
 	}
 	return "UNKNOWN"
 }
+
+func (e EnumTest) String() string {
+	switch e {
+
+	case EnumTest1:
+		return "EnumTest1"
+
+	case EnumTest2:
+		return "EnumTest2"
+
+	case EnumTestNone:
+		return "EnumTestNone"
+
+	}
+	return "UNKNOWN"
+}
 ```
 
