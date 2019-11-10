@@ -33,7 +33,10 @@ var (
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "go generate tool",
-	Long:  `A go generate tool for generate code.`,
+	Long: `A go generate tool for generate code.
+	1. error-code
+	2. mongodb operation
+	3. gorm operation`,
 	//Run: func(cmd *cobra.Command, args []string) {
 	//	fmt.Println("generate called")
 	//},
@@ -42,5 +45,6 @@ var generateCmd = &cobra.Command{
 func init() {
 	generateCmd.AddCommand(generateMongoDBCmd)
 	generateCmd.AddCommand(generateErrorCodeCmd)
+	generateCmd.AddCommand(generateGormCmd)
 	rootCmd.AddCommand(generateCmd)
 }

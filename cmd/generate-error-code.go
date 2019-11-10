@@ -48,7 +48,7 @@ func generateErrorCode(goPackage, typeName string, enumMap map[string]generate.E
 
 var generateErrorCodeCmd = &cobra.Command{
 	Use:   "error-code",
-	Short: "generate code of error code and error information, generate file <dir>/<type>_generate_mongodb.go .",
+	Short: "generate code of error code and error information, generate file <dir>/<type>_generate_error_code.go .",
 	Run: func(cmd *cobra.Command, args []string) {
 		gofile := generate.GetGoFile()
 		gopkg := generate.GetGoPackage()

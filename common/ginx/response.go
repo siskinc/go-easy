@@ -7,12 +7,17 @@ import (
 )
 
 type Response struct {
-	Result interface{} `json:"result"`
+	ErrorCode uint64 `json:"error_code"`
 }
 
-type ErrorResponse struct {
-	ErrorCode uint64 `json:"error_code"`
-	Message   string `json:"message"`
+type DataResponse struct {
+	Response
+	Data interface{} `json:"data"`
+}
+
+type MessageResponse struct {
+	Response
+	Message string `json:"message"`
 }
 
 type ErrorCode interface {
@@ -21,18 +26,20 @@ type ErrorCode interface {
 	ErrorCode() uint64
 }
 
-func MakeResponse(c *gin.Context, data interface{}) {
-	c.JSON(http.StatusOK, Response{Result: data})
+func MakeDataResponse(c *gin.Context, data interface{}) {
+	c.JSON(http.StatusOK, DataResponse{Data: data})
+}
+
+func MakeMessageResponse(c *gin.Context, message string) {
+	c.JSON(http.StatusOK, MessageResponse{Message: message})
 }
 
 func MakeErrorResponse(c *gin.Context, err error) {
-	resp := ErrorResponse{
+	resp := MessageResponse{
 		Message: err.Error(),
 	}
 	if errorCode, ok := err.(ErrorCode); ok {
 		resp.ErrorCode = errorCode.ErrorCode()
-		c.JSON(HttpStatusCustomInternalServerError, resp)
-	} else {
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }

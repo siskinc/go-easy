@@ -48,10 +48,10 @@ func generateMongoDB(goPackage, typeName string, structFieldListMap map[string][
 	var fieldList []*ast.Field
 	var ok bool
 	if documentList, ok = structDocumentListMap[typeName]; !ok {
-		logrus.Fatalln(" not fount type: ", typeName)
+		logrus.Fatalln("not fount type: ", typeName)
 	}
 	if fieldList, ok = structFieldListMap[typeName]; !ok {
-		logrus.Fatalln(" not fount type: ", typeName)
+		logrus.Fatalln("not fount type: ", typeName)
 	}
 	parseInfo := map[string]interface{}{
 		"package": goPackage,
@@ -183,14 +183,15 @@ func generateMongoDB(goPackage, typeName string, structFieldListMap map[string][
 
 var generateMongoDBCmd = &cobra.Command{
 	Use:   "mongodb",
-	Short: "generate code of operate mongodb by mongo-go-driver, generate file <dir>/<type>_generate_mongodb.go .",
+	Short: "generate code of operate mongodb by mongo-go-driver, generate file <dir>/<type>_generate_mgorm.go .",
 	Run: func(cmd *cobra.Command, args []string) {
 		gofile := generate.GetGoFile()
 		gopkg := generate.GetGoPackage()
-		structFieldListMap, structDocumentListMap, err := generate.ParseStruct(gofile, nil)
+		structInfo, err := generate.ParseStruct(gofile, nil)
 		if nil != err {
 			logrus.Fatalln(" ParseStruct is err:", err)
 		}
+		structFieldListMap, structDocumentListMap := structInfo.FieldListMap, structInfo.DocumentListMap
 		contentByte, err := ioutil.ReadFile(gofile)
 		if nil != err {
 			logrus.Fatalf("Read File %s is err", gofile)

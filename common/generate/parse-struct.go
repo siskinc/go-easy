@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -49,20 +50,30 @@ func collectStructDocument(x *ast.GenDecl) (structName string, documents []strin
 	return
 }
 
-func collectStructFields(ts *ast.TypeSpec) []*ast.Field {
+func collectStructFields(ts *ast.StructType) []*ast.Field {
 	//fmt.Println("collectStructFields")
-	x := ts.Type.(*ast.StructType)
-	//fmt.Println("len(x.Fields.List)", len(x.Fields.List))
-	filedList := make([]*ast.Field, len(x.Fields.List))
-	for index, field := range x.Fields.List {
-		filedList[index] = field
+	//x := ts.Type.(*ast.StructType)
+	x := ts
+	fmt.Println("len(x.Fields.List)", x.Fields.List)
+	var filedList []*ast.Field
+	for _, field := range x.Fields.List {
+		if 0 == len(field.Names) {
+			continue
+		}
+		filedList = append(filedList, field)
 	}
 	return filedList
 }
 
-func ParseStruct(filename string, src []byte) (structFieldListMap map[string][]*ast.Field, structDocumentListMap map[string][]string, err error) {
-	structFieldListMap = make(map[string][]*ast.Field)
-	structDocumentListMap = make(map[string][]string)
+type StructInfo struct {
+	FieldListMap    map[string][]*ast.Field
+	DocumentListMap map[string][]string
+}
+
+func ParseStruct(filename string, src []byte) (structInfo *StructInfo, err error) {
+	structInfo = &StructInfo{}
+	structInfo.FieldListMap = make(map[string][]*ast.Field)
+	structInfo.DocumentListMap = make(map[string][]string)
 	if src == nil {
 		src, err = ioutil.ReadFile(filename)
 		if err != nil {
@@ -73,16 +84,19 @@ func ParseStruct(filename string, src []byte) (structFieldListMap map[string][]*
 	if err != nil {
 		return
 	}
-
 	collectStructInfo := func(node ast.Node) bool {
 		switch x := node.(type) {
 		case *ast.TypeSpec:
 			structName := x.Name.Name
-			filedList := collectStructFields(x)
-			structFieldListMap[structName] = filedList
+			s, ok := x.Type.(*ast.StructType)
+			if ok {
+				filedList := collectStructFields(s)
+				structInfo.FieldListMap[structName] = filedList
+			}
+			fmt.Printf("aaa : %+v\n", structInfo.FieldListMap[structName])
 		case *ast.GenDecl:
 			structName, documents := collectStructDocument(x)
-			structDocumentListMap[structName] = documents
+			structInfo.DocumentListMap[structName] = documents
 		default:
 		}
 		return true
