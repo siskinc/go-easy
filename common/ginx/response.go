@@ -41,5 +41,7 @@ func MakeErrorResponse(c *gin.Context, err error) {
 	if errorCode, ok := err.(ErrorCode); ok {
 		resp.ErrorCode = errorCode.ErrorCode()
 		c.JSON(http.StatusOK, resp)
+	} else {
+		resp.ErrorCode = 666666
 	}
 }

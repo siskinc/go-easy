@@ -88,7 +88,7 @@ func (qb *{{$.query_builder_name}}) Where{{call $.titelize .FieldName}}(p easy_g
 	})
 	return qb
 }
-func (qb *{{$.query_builder_name}}) OrderBy{{call $.titelize .FieldName}}(asc bool) *{{$queryBuilderName}} {
+func (qb *{{$.query_builder_name}}) OrderBy{{call $.titelize .FieldName}}(asc bool) *{{$.query_builder_name}} {
 	order := "DESC"
 	if asc {
 		order = "ASC"
