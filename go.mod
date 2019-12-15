@@ -22,5 +22,6 @@ require (
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/sys v0.0.0-20191008105621-543471e840be // indirect
 	golang.org/x/tools v0.0.0-20190312170243-e65039ee4138
+	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/yaml.v2 v2.2.4 // indirect
 )
