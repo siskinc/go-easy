@@ -2,15 +2,21 @@ package ginx
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Response struct {
 	ErrorCode uint64      `json:"error_code"`
 	Data      interface{} `json:"data"`
 	Message   string      `json:"message"`
+}
+
+type ResponseList struct {
+	Response
+	Count uint64 `json:"count"`
 }
 
 type ErrorCode interface {
@@ -39,6 +45,11 @@ func SetInternalError(value ErrorCode) {
 func MakeDataResponse(c *gin.Context, data interface{}) {
 	initCheck()
 	c.JSON(http.StatusOK, Response{Data: data})
+}
+
+func MakeDataListResponse(c *gin.Context, data interface{}, count uint64) {
+	initCheck()
+	c.JSON(http.StatusOK, ResponseList{Response: Response{Data: data}, Count: count})
 }
 
 func MakeMessageResponse(c *gin.Context, message string) {
