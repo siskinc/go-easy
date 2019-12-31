@@ -1,6 +1,6 @@
 package test
 
-//go:generate go-easy generate error-code --type EnumTest --type EnumTestB
+//go:generate go-easy generate enum --type EnumTest --type EnumTestB
 type EnumTest uint64
 type EnumTestB uint64
 

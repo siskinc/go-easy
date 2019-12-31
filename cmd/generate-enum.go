@@ -38,7 +38,7 @@ func generateErrorCode(goPackage, typeName string, enumMap map[string]generate.E
 	if nil != err {
 		logrus.Fatalf(" format Source is err: %s, typeName is %s", err, typeName)
 	}
-	baseName := fmt.Sprintf("%s_generate_error_code.go", str.ToSnakeCase(typeName))
+	baseName := fmt.Sprintf("%s_generate_enum.go", str.ToSnakeCase(typeName))
 	outputName := filepath.Join(".", strings.ToLower(baseName))
 	err = ioutil.WriteFile(outputName, src, 0644)
 	if err != nil {
@@ -47,7 +47,7 @@ func generateErrorCode(goPackage, typeName string, enumMap map[string]generate.E
 }
 
 var generateErrorCodeCmd = &cobra.Command{
-	Use:   "error-code",
+	Use:   "enum",
 	Short: "generate code of error code and error information, generate file <dir>/<type>_generate_error_code.go .",
 	Run: func(cmd *cobra.Command, args []string) {
 		gofile := generate.GetGoFile()
